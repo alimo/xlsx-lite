@@ -1,0 +1,22 @@
+{
+  "name": "xlsx-lite",
+  "version": "0.0.1",
+  "description": "Light XLSX Spreadsheet creator",
+  "main": "dist/index.js",
+  "repository": "git@github.com:alimo/xlsx-lite.git",
+  "author": "Ali Mohammadi <alimohammadi75@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "webpack",
+    "test": "node test/index.js"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.1",
+    "webpack-bundle-analyzer": "^3.5.2",
+    "webpack-cli": "^3.3.9"
+  },
+  "dependencies": {
+    "jszip": "^3.2.2"
+  }
+}
