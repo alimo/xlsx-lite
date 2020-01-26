@@ -1,4 +1,4 @@
 node_modules/
 
 # Test output file
-filename.xlsx
+test.xlsx

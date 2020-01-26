@@ -1,4 +1,4 @@
-const XLSX = require('../src');
+const XLSX = require('./src');
 
 const xlsx = new XLSX();
 
@@ -28,4 +28,4 @@ sheet1.addFilter({
 	to: { row: 7, col: 1 },
 });
 
-xlsx.save('filename.xlsx', true);
+xlsx.save('test.xlsx', true);
