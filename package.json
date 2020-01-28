@@ -2,21 +2,36 @@
   "name": "xlsx-lite",
   "version": "0.0.1",
   "description": "Light XLSX Spreadsheet Creator",
-  "main": "dist/index.js",
+  "main": "dist/xlsx.cjs.js",
+  "module": "dist/xlsx.esm.js",
+  "types": "dist/index.d.ts",
   "repository": "git@github.com:alimo/xlsx-lite.git",
   "author": "Ali Mohammadi <alimohammadi75@gmail.com>",
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "webpack",
-    "test": "node test.js"
+    "build": "rollup --config rollup.config.js && tsc --emitDeclarationOnly",
+    "test": "node test.js",
+    "lint": "eslint --ext .js,.ts src"
   },
   "devDependencies": {
-    "webpack": "^4.41.5",
-    "webpack-bundle-analyzer": "^3.6.0",
-    "webpack-cli": "^3.3.10"
+    "@rollup/plugin-commonjs": "^11.0.1",
+    "@rollup/plugin-node-resolve": "^7.0.0",
+    "@rollup/plugin-typescript": "^2.1.0",
+    "@types/file-saver": "^2.0.1",
+    "@types/jszip": "^3.1.7",
+    "@typescript-eslint/eslint-plugin": "^2.17.0",
+    "@typescript-eslint/parser": "^2.17.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^1.19.1",
+    "rollup": "^1.29.1",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
   },
   "dependencies": {
-    "jszip": "^3.2.2"
+    "file-saver": "^2.0.2",
+    "set-immediate-shim": "^2.0.0"
   }
 }

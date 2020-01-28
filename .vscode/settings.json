@@ -1,0 +1,7 @@
+{
+  "window.title": "XLSX Lite",
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ]
+}

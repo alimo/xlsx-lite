@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Page Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="./dist/xlsx.global.js"></script>
+  <script>
+    const xlsx = new XLSX();
+
+    const redText = xlsx.style({
+      color: '#f00',
+      fontFamily: 'Baloo Bhaijaan',
+      fontWeight: 'bold',
+      fontSize: 14,
+      textDecoration: 'line-through',
+      fontStyle: 'italic',
+      backgroundColor: '#0f0',
+      textAlign: 'center',
+      verticalAlign: 'middle',
+    });
+
+    const sheet1 = xlsx.sheet('Sheet 1');
+    sheet1
+      .row(10)
+      .col(1)
+      .set(120000);
+    console.log(
+      sheet1
+        .row(10)
+        .col(1)
+        .get()
+    );
+    sheet1.cell(10, 2).set(120000);
+    sheet1.set(120000, { row: 10, col: 3 });
+    sheet1.set('bbb', {
+      row: 6,
+      col: 5,
+      style: redText,
+    });
+    sheet1.set('People', { row: 1, col: 1 });
+    sheet1.set('vzf', { row: 2, col: 1 });
+    sheet1.set('gdb', { row: 3, col: 1 });
+    sheet1.set('bsy', { row: 4, col: 1 });
+    sheet1.set('kga', { row: 5, col: 1 });
+    sheet1.set('lbv', { row: 6, col: 1 });
+    sheet1.set('tew', { row: 7, col: 1 });
+    sheet1.addFilter({
+      from: { row: 1, col: 1 },
+      to: { row: 7, col: 1 },
+    });
+
+    xlsx.save('test.xlsx');
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
