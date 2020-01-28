@@ -1885,6 +1885,51 @@ var XLSX = (function () {
     });
     var FileSaver_min_1 = FileSaver_min.saveAs;
 
+    var xmlMetadata = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    function objectToTag(obj) {
+        if (typeof obj !== 'object') {
+            return obj.toString();
+        }
+        var raw = ["<" + obj._t];
+        for (var key in obj) {
+            if (!key.startsWith('_') && obj[key] !== undefined) {
+                raw.push(" " + key + "=\"" + obj[key] + "\"");
+            }
+        }
+        if (obj._c && obj._c.length > 0) {
+            raw.push('>');
+            for (var _i = 0, _a = obj._c; _i < _a.length; _i++) {
+                var content = _a[_i];
+                raw.push(objectToTag(content));
+            }
+            raw.push("</" + obj._t + ">");
+        }
+        else {
+            raw.push('/>');
+        }
+        return raw.join('');
+    }
+    function jsonToXml(obj) {
+        return xmlMetadata + objectToTag(obj);
+    }
+
+    function resolveColor(color) {
+        var c = color[0] === '#' ? color.substr(1) : color;
+        c = c.toUpperCase();
+        if (c.length === 3) {
+            return "FF" + (c[0] + c[0] + c[1] + c[1] + c[2] + c[2]);
+        }
+        else if (c.length === 6) {
+            return "FF" + c;
+        }
+        else if (c.length === 8) {
+            return c.substring(6, 8) + c.substring(0, 6);
+        }
+        else {
+            throw new Error("Invalid color provided: " + color);
+        }
+    }
+
     var Cell = /** @class */ (function () {
         function Cell(sheet, row, col) {
             this.sheet = sheet;
@@ -1944,23 +1989,6 @@ var XLSX = (function () {
         };
         return Row;
     }());
-
-    function resolveColor(color) {
-        var c = color[0] === '#' ? color.substr(1) : color;
-        c = c.toUpperCase();
-        if (c.length === 3) {
-            return "FF" + (c[0] + c[0] + c[1] + c[1] + c[2] + c[2]);
-        }
-        else if (c.length === 6) {
-            return "FF" + c;
-        }
-        else if (c.length === 8) {
-            return c.substring(6, 8) + c.substring(0, 6);
-        }
-        else {
-            throw new Error("Invalid color provided: " + color);
-        }
-    }
 
     var Font = /** @class */ (function () {
         function Font(config) {
@@ -2157,6 +2185,9 @@ var XLSX = (function () {
             this.data = {};
             this.rowsData = {};
             this.colsData = {};
+            this.styles = {
+                rtl: false,
+            };
             this.filters = [];
             this.book = book;
             this.name = name;
@@ -2219,6 +2250,9 @@ var XLSX = (function () {
             }
             return this.data[row][col].v;
         };
+        Sheet.prototype.style = function (styles) {
+            this.styles = __assign(__assign({}, this.styles), styles);
+        };
         Sheet.prototype.addFilter = function (range) {
             this.filters.push(colIndexToLabel(range.from.col) +
                 range.from.row +
@@ -2226,7 +2260,27 @@ var XLSX = (function () {
                 colIndexToLabel(range.to.col) +
                 range.to.row);
         };
-        Sheet.prototype.sheetContent = function () {
+        Sheet.prototype.export = function () {
+            return jsonToXml({
+                _t: 'worksheet',
+                xmlns: 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
+                'xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+                _c: __spreadArrays([
+                    this.exportStyles(),
+                    this.exportColumns(),
+                    this.exportData()
+                ], this.exportFilters()).filter(Boolean),
+            });
+        };
+        Sheet.prototype.exportStyles = function () {
+            return {
+                _t: 'sheetViews',
+                _c: [
+                    { _t: 'sheetView', rightToLeft: this.styles.rtl ? 'true' : 'false' },
+                ],
+            };
+        };
+        Sheet.prototype.exportData = function () {
             var content = [];
             for (var row in this.data) {
                 var rowContent = [];
@@ -2259,9 +2313,9 @@ var XLSX = (function () {
                     _c: rowContent,
                 });
             }
-            return content;
+            return { _t: 'sheetData', _c: content };
         };
-        Sheet.prototype.filterTags = function () {
+        Sheet.prototype.exportFilters = function () {
             return this.filters.map(function (filter) { return ({ _t: 'autoFilter', ref: filter }); });
         };
         Sheet.prototype.exportColumns = function () {
@@ -2286,34 +2340,6 @@ var XLSX = (function () {
         };
         return Sheet;
     }());
-
-    var xmlMetadata = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-    function objectToTag(obj) {
-        if (typeof obj !== 'object') {
-            return obj.toString();
-        }
-        var raw = ["<" + obj._t];
-        for (var key in obj) {
-            if (!key.startsWith('_') && obj[key] !== undefined) {
-                raw.push(" " + key + "=\"" + obj[key] + "\"");
-            }
-        }
-        if (obj._c && obj._c.length > 0) {
-            raw.push('>');
-            for (var _i = 0, _a = obj._c; _i < _a.length; _i++) {
-                var content = _a[_i];
-                raw.push(objectToTag(content));
-            }
-            raw.push("</" + obj._t + ">");
-        }
-        else {
-            raw.push('/>');
-        }
-        return raw.join('');
-    }
-    function jsonToXml(obj) {
-        return xmlMetadata + objectToTag(obj);
-    }
 
     var XLSX = /** @class */ (function () {
         function XLSX() {
@@ -2413,16 +2439,7 @@ var XLSX = (function () {
                 }); })),
             }));
             for (var i = 0; i < this.sheets.length; i++) {
-                xlWorksheets.file("sheet" + (i + 1) + ".xml", jsonToXml({
-                    _t: 'worksheet',
-                    xmlns: 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-                    'xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-                    _c: __spreadArrays([
-                        { _t: 'sheetData', _c: this.sheets[i].sheetContent() }
-                    ], this.sheets[i].filterTags(), [
-                        this.sheets[i].exportColumns(),
-                    ]).filter(Boolean),
-                }));
+                xlWorksheets.file("sheet" + (i + 1) + ".xml", this.sheets[i].export());
             }
             xl.file('styles.xml', jsonToXml({
                 _t: 'styleSheet',

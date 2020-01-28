@@ -139,20 +139,7 @@ export default class XLSX {
       })
     );
     for (let i = 0; i < this.sheets.length; i++) {
-      xlWorksheets.file(
-        `sheet${i + 1}.xml`,
-        jsonToXml({
-          _t: 'worksheet',
-          xmlns: 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-          'xmlns:r':
-            'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-          _c: [
-            { _t: 'sheetData', _c: this.sheets[i].sheetContent() },
-            ...this.sheets[i].filterTags(),
-            this.sheets[i].exportColumns(),
-          ].filter(Boolean),
-        })
-      );
+      xlWorksheets.file(`sheet${i + 1}.xml`, this.sheets[i].export());
     }
     xl.file(
       'styles.xml',

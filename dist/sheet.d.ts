@@ -13,6 +13,9 @@ interface SheetData {
         [key: string]: CellProps;
     };
 }
+interface SheetStyles {
+    rtl?: boolean;
+}
 export default class Sheet {
     book: XLSX;
     name: string;
@@ -23,6 +26,7 @@ export default class Sheet {
     colsData: {
         [key: string]: ColData;
     };
+    styles: SheetStyles;
     filters: any[];
     constructor(book: XLSX, name: string);
     col(index: number): Col;
@@ -30,9 +34,12 @@ export default class Sheet {
     cell(row: number, col: number): Cell;
     set(value: CellValue, options: CellPosition & CellOptions): void;
     get(position: CellPosition): CellValue;
+    style(styles: SheetStyles): void;
     addFilter(range: any): void;
-    sheetContent(): XMLObject[];
-    filterTags(): XMLObject[];
+    export(): string;
+    exportStyles(): XMLObject;
+    exportData(): XMLObject;
+    exportFilters(): XMLObject[];
     exportColumns(): XMLObject | null;
 }
 export {};

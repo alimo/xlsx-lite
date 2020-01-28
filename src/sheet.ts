@@ -1,4 +1,4 @@
-import { XMLObject } from './utils';
+import { XMLObject, jsonToXml } from './utils';
 import XLSX from '.';
 import Col, { ColData } from './col';
 import Row, { RowData } from './row';
@@ -27,12 +27,19 @@ interface SheetData {
   };
 }
 
+interface SheetStyles {
+  rtl?: boolean;
+}
+
 export default class Sheet {
   book: XLSX;
   name: string;
   data: SheetData = {};
   rowsData: { [key: string]: RowData } = {};
   colsData: { [key: string]: ColData } = {};
+  styles: SheetStyles = {
+    rtl: false,
+  };
   filters = [];
 
   constructor(book: XLSX, name: string) {
@@ -106,6 +113,13 @@ export default class Sheet {
     return this.data[row][col].v;
   }
 
+  style(styles: SheetStyles): void {
+    this.styles = {
+      ...this.styles,
+      ...styles,
+    };
+  }
+
   addFilter(range): void {
     this.filters.push(
       colIndexToLabel(range.from.col) +
@@ -116,7 +130,31 @@ export default class Sheet {
     );
   }
 
-  sheetContent(): XMLObject[] {
+  export(): string {
+    return jsonToXml({
+      _t: 'worksheet',
+      xmlns: 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
+      'xmlns:r':
+        'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+      _c: [
+        this.exportStyles(),
+        this.exportColumns(),
+        this.exportData(),
+        ...this.exportFilters(),
+      ].filter(Boolean),
+    });
+  }
+
+  exportStyles(): XMLObject {
+    return {
+      _t: 'sheetViews',
+      _c: [
+        { _t: 'sheetView', rightToLeft: this.styles.rtl ? 'true' : 'false' },
+      ],
+    };
+  }
+
+  exportData(): XMLObject {
     const content: XMLObject[] = [];
     for (const row in this.data) {
       const rowContent = [];
@@ -148,10 +186,10 @@ export default class Sheet {
         _c: rowContent,
       });
     }
-    return content;
+    return { _t: 'sheetData', _c: content };
   }
 
-  filterTags(): XMLObject[] {
+  exportFilters(): XMLObject[] {
     return this.filters.map(filter => ({ _t: 'autoFilter', ref: filter }));
   }
 
