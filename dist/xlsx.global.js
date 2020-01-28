@@ -1904,23 +1904,43 @@ var XLSX = (function () {
     }());
 
     var Col = /** @class */ (function () {
-        function Col(sheet, index) {
+        function Col(sheet, index, data) {
             this.sheet = sheet;
             this.index = index;
+            data.width = data.width || null;
+            this.data = data;
         }
         Col.prototype.row = function (index) {
             return new Cell(this.sheet, index, this.index);
+        };
+        Col.prototype.width = function (value) {
+            if (value) {
+                this.data.width = value;
+            }
+            else {
+                return this.data.width;
+            }
         };
         return Col;
     }());
 
     var Row = /** @class */ (function () {
-        function Row(sheet, index) {
+        function Row(sheet, index, data) {
             this.sheet = sheet;
             this.index = index;
+            data.height = data.height || null;
+            this.data = data;
         }
         Row.prototype.col = function (index) {
             return new Cell(this.sheet, this.index, index);
+        };
+        Row.prototype.height = function (value) {
+            if (value) {
+                this.data.height = value;
+            }
+            else {
+                return this.data.height;
+            }
         };
         return Row;
     }());
@@ -2135,15 +2155,19 @@ var XLSX = (function () {
     var Sheet = /** @class */ (function () {
         function Sheet(book, name) {
             this.data = {};
+            this.rowsData = {};
+            this.colsData = {};
             this.filters = [];
             this.book = book;
             this.name = name;
         }
         Sheet.prototype.col = function (index) {
-            return new Col(this, index);
+            this.colsData[index] = this.colsData[index] || {};
+            return new Col(this, index, this.colsData[index]);
         };
         Sheet.prototype.row = function (index) {
-            return new Row(this, index);
+            this.rowsData[index] = this.rowsData[index] || {};
+            return new Row(this, index, this.rowsData[index]);
         };
         Sheet.prototype.cell = function (row, col) {
             return new Cell(this, row, col);
@@ -2226,12 +2250,39 @@ var XLSX = (function () {
                         _c: colContent,
                     });
                 }
-                content.push({ _t: 'row', r: row, _c: rowContent });
+                var rowData = this.rowsData[row] || {};
+                content.push({
+                    _t: 'row',
+                    customHeight: typeof rowData.height === 'number' ? 'true' : 'false',
+                    ht: typeof rowData.height === 'number' ? rowData.height : undefined,
+                    r: row,
+                    _c: rowContent,
+                });
             }
             return content;
         };
         Sheet.prototype.filterTags = function () {
             return this.filters.map(function (filter) { return ({ _t: 'autoFilter', ref: filter }); });
+        };
+        Sheet.prototype.exportColumns = function () {
+            var _this = this;
+            if (!Object.keys(this.colsData).length) {
+                return null;
+            }
+            return {
+                _t: 'cols',
+                _c: Object.keys(this.colsData).map(function (columnIndex) { return ({
+                    _t: 'col',
+                    min: columnIndex,
+                    max: columnIndex,
+                    customWidth: typeof _this.colsData[columnIndex].width === 'number'
+                        ? 'true'
+                        : 'false',
+                    width: typeof _this.colsData[columnIndex].width === 'number'
+                        ? _this.colsData[columnIndex].width
+                        : undefined,
+                }); }),
+            };
         };
         return Sheet;
     }());
@@ -2368,7 +2419,9 @@ var XLSX = (function () {
                     'xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
                     _c: __spreadArrays([
                         { _t: 'sheetData', _c: this.sheets[i].sheetContent() }
-                    ], this.sheets[i].filterTags()),
+                    ], this.sheets[i].filterTags(), [
+                        this.sheets[i].exportColumns(),
+                    ]).filter(Boolean),
                 }));
             }
             xl.file('styles.xml', jsonToXml({

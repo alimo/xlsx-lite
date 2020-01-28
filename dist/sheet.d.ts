@@ -1,7 +1,7 @@
 import { XMLObject } from './utils';
 import XLSX from '.';
-import Col from './col';
-import Row from './row';
+import Col, { ColData } from './col';
+import Row, { RowData } from './row';
 import Cell, { CellPosition, CellOptions, CellValue } from './cell';
 interface CellProps {
     s?: number;
@@ -17,6 +17,12 @@ export default class Sheet {
     book: XLSX;
     name: string;
     data: SheetData;
+    rowsData: {
+        [key: string]: RowData;
+    };
+    colsData: {
+        [key: string]: ColData;
+    };
     filters: any[];
     constructor(book: XLSX, name: string);
     col(index: number): Col;
@@ -27,5 +33,6 @@ export default class Sheet {
     addFilter(range: any): void;
     sheetContent(): XMLObject[];
     filterTags(): XMLObject[];
+    exportColumns(): XMLObject | null;
 }
 export {};

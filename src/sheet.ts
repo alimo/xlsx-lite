@@ -1,7 +1,7 @@
 import { XMLObject } from './utils';
 import XLSX from '.';
-import Col from './col';
-import Row from './row';
+import Col, { ColData } from './col';
+import Row, { RowData } from './row';
 import Cell, { CellPosition, CellOptions, CellValue } from './cell';
 import Style from './style';
 
@@ -31,6 +31,8 @@ export default class Sheet {
   book: XLSX;
   name: string;
   data: SheetData = {};
+  rowsData: { [key: string]: RowData } = {};
+  colsData: { [key: string]: ColData } = {};
   filters = [];
 
   constructor(book: XLSX, name: string) {
@@ -39,11 +41,13 @@ export default class Sheet {
   }
 
   col(index: number): Col {
-    return new Col(this, index);
+    this.colsData[index] = this.colsData[index] || {};
+    return new Col(this, index, this.colsData[index]);
   }
 
   row(index: number): Row {
-    return new Row(this, index);
+    this.rowsData[index] = this.rowsData[index] || {};
+    return new Row(this, index, this.rowsData[index]);
   }
 
   cell(row: number, col: number): Cell {
@@ -113,7 +117,7 @@ export default class Sheet {
   }
 
   sheetContent(): XMLObject[] {
-    const content = [];
+    const content: XMLObject[] = [];
     for (const row in this.data) {
       const rowContent = [];
       for (const col in this.data[row]) {
@@ -135,12 +139,41 @@ export default class Sheet {
           _c: colContent,
         });
       }
-      content.push({ _t: 'row', r: row, _c: rowContent });
+      const rowData = this.rowsData[row] || {};
+      content.push({
+        _t: 'row',
+        customHeight: typeof rowData.height === 'number' ? 'true' : 'false',
+        ht: typeof rowData.height === 'number' ? rowData.height : undefined,
+        r: row,
+        _c: rowContent,
+      });
     }
     return content;
   }
 
   filterTags(): XMLObject[] {
     return this.filters.map(filter => ({ _t: 'autoFilter', ref: filter }));
+  }
+
+  exportColumns(): XMLObject | null {
+    if (!Object.keys(this.colsData).length) {
+      return null;
+    }
+    return {
+      _t: 'cols',
+      _c: Object.keys(this.colsData).map(columnIndex => ({
+        _t: 'col',
+        min: columnIndex,
+        max: columnIndex,
+        customWidth:
+          typeof this.colsData[columnIndex].width === 'number'
+            ? 'true'
+            : 'false',
+        width:
+          typeof this.colsData[columnIndex].width === 'number'
+            ? this.colsData[columnIndex].width
+            : undefined,
+      })),
+    };
   }
 }

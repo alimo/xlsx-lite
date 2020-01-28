@@ -149,7 +149,8 @@ export default class XLSX {
           _c: [
             { _t: 'sheetData', _c: this.sheets[i].sheetContent() },
             ...this.sheets[i].filterTags(),
-          ],
+            this.sheets[i].exportColumns(),
+          ].filter(Boolean),
         })
       );
     }
