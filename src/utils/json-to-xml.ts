@@ -3,7 +3,7 @@ const xmlMetadata = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 export interface XMLObject {
   _t: string;
   _c?: XMLObject[];
-  [key: string]: string | number | XMLObject[];
+  [key: string]: string | number | XMLObject[] | undefined;
 }
 
 function objectToTag(obj: XMLObject | string): string {
