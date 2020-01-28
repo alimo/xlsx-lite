@@ -149,7 +149,11 @@ export default class Sheet {
     return {
       _t: 'sheetViews',
       _c: [
-        { _t: 'sheetView', rightToLeft: this.styles.rtl ? 'true' : 'false' },
+        {
+          _t: 'sheetView',
+          rightToLeft: this.styles.rtl ? 'true' : 'false',
+          workbookViewId: '0',
+        },
       ],
     };
   }
