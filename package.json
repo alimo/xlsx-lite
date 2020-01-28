@@ -1,12 +1,18 @@
 {
   "name": "xlsx-lite",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Light XLSX Spreadsheet Creator",
-  "keywords": ["xlsx", "spreadsheet", "excel"],
+  "keywords": [
+    "xlsx",
+    "spreadsheet",
+    "excel"
+  ],
   "main": "dist/xlsx.cjs.js",
   "module": "dist/xlsx.esm.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "repository": "git://github.com/alimo/xlsx-lite.git",
   "author": "Ali Mohammadi <alimohammadi75@gmail.com>",
   "license": "MIT",
