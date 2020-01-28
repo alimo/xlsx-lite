@@ -1,6 +1,6 @@
 {
   "name": "xlsx-lite",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Light XLSX Spreadsheet Creator",
   "main": "dist/xlsx.cjs.js",
   "module": "dist/xlsx.esm.js",
