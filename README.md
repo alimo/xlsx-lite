@@ -12,9 +12,17 @@ A lightweight XLSX spreadsheet creator for browser.
 - [FileSaver.js](https://github.com/eligrey/FileSaver.js/) is used for downloading the result.
 - Row and column indexes **start at 1**.
 
-## Sample
+## Install
+
+```bash
+yarn add xlsx-lite
+```
+
+## Usage Example
 
 ```js
+import XLSX from 'xlsx-lite';
+
 // Create a workbook
 const xlsx = new XLSX();
 
