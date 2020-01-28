@@ -6,6 +6,7 @@
   "main": "dist/xlsx.cjs.js",
   "module": "dist/xlsx.esm.js",
   "types": "dist/index.d.ts",
+  "files": ["dist"],
   "repository": "git://github.com/alimo/xlsx-lite.git",
   "author": "Ali Mohammadi <alimohammadi75@gmail.com>",
   "license": "MIT",
