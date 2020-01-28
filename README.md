@@ -4,7 +4,7 @@ A lightweight XLSX spreadsheet creator for browser.
 
 ## WORK IN PROGRESS
 
-:warning: **Do NOT use this package in development nor production.**
+:warning: **Do NOT use this package in production.**
 
 ## Notes
 
@@ -80,12 +80,13 @@ xlsx.save('test.xlsx');
 
 - It only works in browser
 - Compatibility is quite poor
+- It can't read excel files
 
 ## Todos
 
 - [x] Cell border
 - [x] Column width and row height
+- [ ] Righ-to-left
 - [ ] Accept array, array of arrays, and JSON to set values
 - [ ] Fixed rows and columns
 - [ ] Formulas
-- [ ] Righ-to-left
