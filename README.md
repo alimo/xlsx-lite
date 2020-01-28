@@ -85,4 +85,7 @@ xlsx.save('test.xlsx');
 
 - [x] Cell border
 - [x] Column width and row height
-- [ ] Accept array, array of arrays, and JSON to set values.
+- [ ] Accept array, array of arrays, and JSON to set values
+- [ ] Fixed rows and columns
+- [ ] Formulas
+- [ ] Righ-to-left
