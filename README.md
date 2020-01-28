@@ -49,6 +49,8 @@ const someStyles = xlsx.style({
   backgroundColor: '#ff0',
   textAlign: 'center',
   verticalAlign: 'middle',
+  borderStyle: 'double',
+  borderColor: '#00f',
 });
 sheet.set('styled', {
   row: 2,
@@ -73,6 +75,6 @@ xlsx.save('test.xlsx');
 
 ## Todos
 
-- [ ] Cell border
+- [x] Cell border
 - [ ] Column width and row height
 - [ ] Accept array, array of arrays, and JSON to set values.
