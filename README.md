@@ -1,4 +1,8 @@
-# WORK IN PROGRESS
+# XLSX Lite ![minzip](https://badgen.net/bundlephobia/minzip/xlsx-lite)
+
+A lightweight XLSX spreadsheet creator for browser.
+
+## WORK IN PROGRESS
 
 :warning: **Do NOT use this package in development nor production.**
 
