@@ -1,5 +1,5 @@
 import Sheet from './sheet';
-import Style from './style';
+import Style, { StyleConfig } from './style';
 export declare type CellValue = number | string;
 export interface CellPosition {
     row: number;
@@ -7,7 +7,7 @@ export interface CellPosition {
 }
 export interface CellOptions {
     type?: 'number' | 'string';
-    style?: Style;
+    style?: Style | StyleConfig;
 }
 export default class Cell {
     sheet: Sheet;

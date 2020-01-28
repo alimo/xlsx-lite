@@ -1,7 +1,9 @@
 import { XMLObject } from './utils';
+import XLSX from '.';
 import Col from './col';
 import Row from './row';
 import Cell, { CellPosition, CellOptions, CellValue } from './cell';
+import Style from './style';
 
 function colIndexToLabel(index: number): string {
   let label = '';
@@ -26,11 +28,13 @@ interface SheetData {
 }
 
 export default class Sheet {
+  book: XLSX;
   name: string;
   data: SheetData = {};
   filters = [];
 
-  constructor(name: string) {
+  constructor(book: XLSX, name: string) {
+    this.book = book;
     this.name = name;
   }
 
@@ -71,7 +75,11 @@ export default class Sheet {
     const cell = this.data[row][col];
 
     if (style) {
-      cell.s = style.index;
+      if (style instanceof Style) {
+        cell.s = style.index;
+      } else {
+        cell.s = this.book.style(style).index;
+      }
     }
 
     if (type === 'string') {

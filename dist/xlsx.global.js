@@ -1925,113 +1925,6 @@ var XLSX = (function () {
         return Row;
     }());
 
-    function colIndexToLabel(index) {
-        var label = '';
-        while (index > 0) {
-            var t = (index - 1) % 26;
-            label = String.fromCharCode(65 + t) + label;
-            index = ((index - t) / 26) | 0;
-        }
-        return label;
-    }
-    var Sheet = /** @class */ (function () {
-        function Sheet(name) {
-            this.data = {};
-            this.filters = [];
-            this.name = name;
-        }
-        Sheet.prototype.col = function (index) {
-            return new Col(this, index);
-        };
-        Sheet.prototype.row = function (index) {
-            return new Row(this, index);
-        };
-        Sheet.prototype.cell = function (row, col) {
-            return new Cell(this, row, col);
-        };
-        Sheet.prototype.set = function (value, options) {
-            var type = options.type;
-            var row = options.row, col = options.col, style = options.style;
-            if (!type) {
-                if (typeof value === 'string') {
-                    type = 'string';
-                }
-                else if (typeof value === 'number') {
-                    type = 'number';
-                }
-                else {
-                    throw new Error('Invalid cell value type. Only numbers and strings are allowed.');
-                }
-            }
-            if (!this.data[row]) {
-                this.data[row] = {};
-            }
-            if (!this.data[row][col]) {
-                this.data[row][col] = {};
-            }
-            var cell = this.data[row][col];
-            if (style) {
-                cell.s = style.index;
-            }
-            if (type === 'string') {
-                cell.t = 'inlineStr';
-            }
-            else if (type === 'number') {
-                cell.t = 'n';
-            }
-            else {
-                throw new Error("Invalid cell type provided: " + type);
-            }
-            cell.v = value;
-        };
-        Sheet.prototype.get = function (position) {
-            var row = position.row, col = position.col;
-            if (!this.data[row] || !this.data[row][col]) {
-                return null;
-            }
-            return this.data[row][col].v;
-        };
-        Sheet.prototype.addFilter = function (range) {
-            this.filters.push(colIndexToLabel(range.from.col) +
-                range.from.row +
-                ':' +
-                colIndexToLabel(range.to.col) +
-                range.to.row);
-        };
-        Sheet.prototype.sheetContent = function () {
-            var content = [];
-            for (var row in this.data) {
-                var rowContent = [];
-                for (var col in this.data[row]) {
-                    var cell = this.data[row][col];
-                    var colContent = [];
-                    if (cell.t === 'inlineStr') {
-                        colContent.push({
-                            _t: 'is',
-                            _c: [{ _t: 't', _c: [cell.v] }],
-                        });
-                    }
-                    else {
-                        colContent.push({ _t: 'v', _c: [cell.v] });
-                    }
-                    rowContent.push({
-                        _t: 'c',
-                        t: cell.t,
-                        s: cell.s,
-                        r: colIndexToLabel(col) + row,
-                        _c: colContent,
-                    });
-                }
-                content.push({ _t: 'row', r: row, _c: rowContent });
-            }
-            return content;
-        };
-        Sheet.prototype.filterTags = function () {
-            return this.filters.map(function (filter) { return ({ _t: 'autoFilter', ref: filter }); });
-        };
-        return Sheet;
-    }());
-
     function resolveColor(color) {
         var c = color[0] === '#' ? color.substr(1) : color;
         c = c.toUpperCase();
@@ -2105,6 +1998,65 @@ var XLSX = (function () {
         return Fill;
     }());
 
+    var Border = /** @class */ (function () {
+        function Border(config) {
+            this.config = config;
+        }
+        Border.prototype.export = function () {
+            var _a = this.config, borderStyle = _a.borderStyle, borderColor = _a.borderColor, borderVerticalStyle = _a.borderVerticalStyle, borderVerticalColor = _a.borderVerticalColor, borderHorizontalStyle = _a.borderHorizontalStyle, borderHorizontalColor = _a.borderHorizontalColor, borderTopStyle = _a.borderTopStyle, borderTopColor = _a.borderTopColor, borderBottomStyle = _a.borderBottomStyle, borderBottomColor = _a.borderBottomColor, borderStartStyle = _a.borderStartStyle, borderStartColor = _a.borderStartColor, borderEndStyle = _a.borderEndStyle, borderEndColor = _a.borderEndColor;
+            var topBorder = {
+                style: borderTopStyle || borderVerticalStyle || borderStyle,
+                color: borderTopColor || borderVerticalColor || borderColor,
+            };
+            var bottomBorder = {
+                style: borderBottomStyle || borderVerticalStyle || borderStyle,
+                color: borderBottomColor || borderVerticalColor || borderColor,
+            };
+            var startBorder = {
+                style: borderStartStyle || borderHorizontalStyle || borderStyle,
+                color: borderStartColor || borderHorizontalColor || borderColor,
+            };
+            var endBorder = {
+                style: borderEndStyle || borderHorizontalStyle || borderStyle,
+                color: borderEndColor || borderHorizontalColor || borderColor,
+            };
+            return {
+                _t: 'border',
+                _c: [
+                    {
+                        _t: 'top',
+                        style: topBorder.style,
+                        _c: topBorder.color && [
+                            { _t: 'color', rgb: resolveColor(topBorder.color) },
+                        ],
+                    },
+                    {
+                        _t: 'bottom',
+                        style: bottomBorder.style,
+                        _c: bottomBorder.color && [
+                            { _t: 'color', rgb: resolveColor(bottomBorder.color) },
+                        ],
+                    },
+                    {
+                        _t: 'start',
+                        style: startBorder.style,
+                        _c: startBorder.color && [
+                            { _t: 'color', rgb: resolveColor(startBorder.color) },
+                        ],
+                    },
+                    {
+                        _t: 'end',
+                        style: endBorder.style,
+                        _c: endBorder.color && [
+                            { _t: 'color', rgb: resolveColor(endBorder.color) },
+                        ],
+                    },
+                ],
+            };
+        };
+        return Border;
+    }());
+
     var Style = /** @class */ (function () {
         function Style(config, index, elements) {
             this.alignment = null;
@@ -2123,6 +2075,23 @@ var XLSX = (function () {
                 this.fillIndex = elements.fills.length;
                 elements.fills.push(new Fill(config));
             }
+            if (config.borderStyle ||
+                config.borderColor ||
+                config.borderVerticalStyle ||
+                config.borderVerticalColor ||
+                config.borderHorizontalStyle ||
+                config.borderHorizontalColor ||
+                config.borderTopStyle ||
+                config.borderTopColor ||
+                config.borderBottomStyle ||
+                config.borderBottomColor ||
+                config.borderStartStyle ||
+                config.borderStartColor ||
+                config.borderEndStyle ||
+                config.borderEndColor) {
+                this.borderIndex = elements.borders.length;
+                elements.borders.push(new Border(config));
+            }
             if (config.textAlign || config.verticalAlign) {
                 this.alignment = {
                     textAlign: config.textAlign,
@@ -2137,6 +2106,8 @@ var XLSX = (function () {
                 applyFont: typeof this.fontIndex === 'number' ? 'true' : undefined,
                 fillId: this.fillIndex,
                 applyFill: typeof this.fillIndex === 'number' ? 'true' : undefined,
+                borderId: this.borderIndex,
+                applyBorder: typeof this.borderIndex === 'number' ? 'true' : undefined,
                 applyAlignment: this.alignment ? 'true' : undefined,
                 _c: [
                     this.alignment && {
@@ -2150,6 +2121,119 @@ var XLSX = (function () {
             };
         };
         return Style;
+    }());
+
+    function colIndexToLabel(index) {
+        var label = '';
+        while (index > 0) {
+            var t = (index - 1) % 26;
+            label = String.fromCharCode(65 + t) + label;
+            index = ((index - t) / 26) | 0;
+        }
+        return label;
+    }
+    var Sheet = /** @class */ (function () {
+        function Sheet(book, name) {
+            this.data = {};
+            this.filters = [];
+            this.book = book;
+            this.name = name;
+        }
+        Sheet.prototype.col = function (index) {
+            return new Col(this, index);
+        };
+        Sheet.prototype.row = function (index) {
+            return new Row(this, index);
+        };
+        Sheet.prototype.cell = function (row, col) {
+            return new Cell(this, row, col);
+        };
+        Sheet.prototype.set = function (value, options) {
+            var type = options.type;
+            var row = options.row, col = options.col, style = options.style;
+            if (!type) {
+                if (typeof value === 'string') {
+                    type = 'string';
+                }
+                else if (typeof value === 'number') {
+                    type = 'number';
+                }
+                else {
+                    throw new Error('Invalid cell value type. Only numbers and strings are allowed.');
+                }
+            }
+            if (!this.data[row]) {
+                this.data[row] = {};
+            }
+            if (!this.data[row][col]) {
+                this.data[row][col] = {};
+            }
+            var cell = this.data[row][col];
+            if (style) {
+                if (style instanceof Style) {
+                    cell.s = style.index;
+                }
+                else {
+                    cell.s = this.book.style(style).index;
+                }
+            }
+            if (type === 'string') {
+                cell.t = 'inlineStr';
+            }
+            else if (type === 'number') {
+                cell.t = 'n';
+            }
+            else {
+                throw new Error("Invalid cell type provided: " + type);
+            }
+            cell.v = value;
+        };
+        Sheet.prototype.get = function (position) {
+            var row = position.row, col = position.col;
+            if (!this.data[row] || !this.data[row][col]) {
+                return null;
+            }
+            return this.data[row][col].v;
+        };
+        Sheet.prototype.addFilter = function (range) {
+            this.filters.push(colIndexToLabel(range.from.col) +
+                range.from.row +
+                ':' +
+                colIndexToLabel(range.to.col) +
+                range.to.row);
+        };
+        Sheet.prototype.sheetContent = function () {
+            var content = [];
+            for (var row in this.data) {
+                var rowContent = [];
+                for (var col in this.data[row]) {
+                    var cell = this.data[row][col];
+                    var colContent = [];
+                    if (cell.t === 'inlineStr') {
+                        colContent.push({
+                            _t: 'is',
+                            _c: [{ _t: 't', _c: [cell.v] }],
+                        });
+                    }
+                    else {
+                        colContent.push({ _t: 'v', _c: [cell.v] });
+                    }
+                    rowContent.push({
+                        _t: 'c',
+                        t: cell.t,
+                        s: cell.s,
+                        r: colIndexToLabel(col) + row,
+                        _c: colContent,
+                    });
+                }
+                content.push({ _t: 'row', r: row, _c: rowContent });
+            }
+            return content;
+        };
+        Sheet.prototype.filterTags = function () {
+            return this.filters.map(function (filter) { return ({ _t: 'autoFilter', ref: filter }); });
+        };
+        return Sheet;
     }());
 
     var xmlMetadata = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
@@ -2187,11 +2271,12 @@ var XLSX = (function () {
             this.styleElements = {
                 fonts: [],
                 fills: [],
+                borders: [],
             };
             this.style({ fontFamily: 'Arial' });
         }
         XLSX.prototype.sheet = function (name) {
-            var sheet = new Sheet(name);
+            var sheet = new Sheet(this, name);
             this.sheets.push(sheet);
             return sheet;
         };
@@ -2201,7 +2286,6 @@ var XLSX = (function () {
             return style;
         };
         XLSX.prototype.save = function (filename) {
-            console.log("Writing to \"" + filename + "\"");
             var zip = new JSZip();
             var rels = zip.folder('_rels');
             var xl = zip.folder('xl');
@@ -2302,6 +2386,11 @@ var XLSX = (function () {
                         _t: 'fills',
                         count: this.styleElements.fills.length,
                         _c: this.styleElements.fills.map(function (fill) { return fill.export(); }),
+                    },
+                    {
+                        _t: 'borders',
+                        count: this.styleElements.borders.length,
+                        _c: this.styleElements.borders.map(function (border) { return border.export(); }),
                     },
                     {
                         _t: 'cellXfs',

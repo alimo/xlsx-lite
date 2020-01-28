@@ -5,13 +5,13 @@ import Sheet from './sheet';
 import Style, { StyleConfig } from './style';
 import Font from './style/font';
 import Fill from './style/fill';
-// import Border from './style/border';
+import Border from './style/border';
 import { jsonToXml } from './utils';
 
 export interface StyleElements {
   fonts: Font[];
   fills: Fill[];
-  // borders: Border[];
+  borders: Border[];
 }
 
 export default class XLSX {
@@ -20,7 +20,7 @@ export default class XLSX {
   styleElements: StyleElements = {
     fonts: [],
     fills: [],
-    // borders: [],
+    borders: [],
   };
 
   constructor() {
@@ -28,7 +28,7 @@ export default class XLSX {
   }
 
   sheet(name: string): Sheet {
-    const sheet = new Sheet(name);
+    const sheet = new Sheet(this, name);
     this.sheets.push(sheet);
     return sheet;
   }
@@ -40,7 +40,6 @@ export default class XLSX {
   }
 
   save(filename: string): void {
-    console.log(`Writing to "${filename}"`);
     const zip = new JSZip();
     const rels = zip.folder('_rels');
     const xl = zip.folder('xl');
@@ -173,6 +172,11 @@ export default class XLSX {
             _t: 'fills',
             count: this.styleElements.fills.length,
             _c: this.styleElements.fills.map(fill => fill.export()),
+          },
+          {
+            _t: 'borders',
+            count: this.styleElements.borders.length,
+            _c: this.styleElements.borders.map(border => border.export()),
           },
           {
             _t: 'cellXfs',

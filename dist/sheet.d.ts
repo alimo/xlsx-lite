@@ -1,4 +1,5 @@
 import { XMLObject } from './utils';
+import XLSX from '.';
 import Col from './col';
 import Row from './row';
 import Cell, { CellPosition, CellOptions, CellValue } from './cell';
@@ -13,10 +14,11 @@ interface SheetData {
     };
 }
 export default class Sheet {
+    book: XLSX;
     name: string;
     data: SheetData;
     filters: any[];
-    constructor(name: string);
+    constructor(book: XLSX, name: string);
     col(index: number): Col;
     row(index: number): Row;
     cell(row: number, col: number): Cell;
