@@ -29,6 +29,12 @@ const xlsx = new XLSX();
 // Add a sheet to workbook
 const sheet = xlsx.sheet('Sheet Name');
 
+// Change sheet styles
+sheet.style({
+  rtl: true,
+});
+
+
 // Set values
 sheet.row(1).col(1).set('foo');
 sheet.cell(1, 2).set('bar');
@@ -86,7 +92,7 @@ xlsx.save('test.xlsx');
 
 - [x] Cell border
 - [x] Column width and row height
-- [ ] Righ-to-left
+- [x] Righ-to-left
 - [ ] Accept array, array of arrays, and JSON to set values
 - [ ] Fixed rows and columns
 - [ ] Formulas
