@@ -58,7 +58,15 @@ sheet.set('styled', {
   style: someStyles,
 });
 
-// Filters
+// Set and get row height
+sheet.row(2).height(100);
+console.log(sheet.row(2).height()); // 100
+
+// Set and get column width
+sheet.col(1).width(20);
+console.log(sheet.col(1).width()); // 20
+
+// Add filters
 sheet.addFilter({
   from: { row: 1, col: 1 },
   to: { row: 7, col: 1 },
@@ -76,5 +84,5 @@ xlsx.save('test.xlsx');
 ## Todos
 
 - [x] Cell border
-- [ ] Column width and row height
+- [x] Column width and row height
 - [ ] Accept array, array of arrays, and JSON to set values.
