@@ -22,6 +22,9 @@ export default class Row {
     return new Cell(this.sheet, this.index, index);
   }
 
+  /**
+   * Row height measured in point size. There is no margin padding on row height.
+   */
   height(value?: number): number | void {
     if (value) {
       this.data.height = value;
