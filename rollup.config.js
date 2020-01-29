@@ -1,6 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import { terser } from 'rollup-plugin-terser';
 
 const buildConfigs = {
   cjs: {
@@ -30,15 +31,13 @@ export default Object.entries(buildConfigs).map(([, config]) => {
     output: config.output,
     plugins: [
       typescript(),
-      // builtins(),
-      resolve({
-        // preferBuiltins: false,
-      }),
+      resolve(),
       commonjs({
         namedExports: {
           'file-saver': ['saveAs'],
         },
       }),
+      terser(),
     ],
   };
 });

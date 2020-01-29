@@ -34,7 +34,6 @@ sheet.style({
   rtl: true,
 });
 
-
 // Set values
 sheet.row(1).col(1).set('foo');
 sheet.cell(1, 2).set('bar');
