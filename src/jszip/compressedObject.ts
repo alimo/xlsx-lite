@@ -12,13 +12,23 @@ import GenericWorker from './stream/GenericWorker';
  * @param {String|ArrayBuffer|Uint8Array|Buffer} data the compressed data.
  */
 export default class CompressedObject {
+  compressedSize;
+  uncompressedSize;
+  crc32;
+  compression;
+  compressedContent;
+
+  constructor(compressedSize, uncompressedSize, crc32, compression, data) {
+    this.compressedSize = compressedSize;
+    this.uncompressedSize = uncompressedSize;
+    this.crc32 = crc32;
+    this.compression = compression;
+    this.compressedContent = data;
+  }
+
   /**
    * Chain the given worker with other workers to compress the content with the
    * given compression.
-   * @param {GenericWorker} uncompressedWorker the worker to pipe.
-   * @param {Object} compression the compression object.
-   * @param {Object} compressionOptions the options to use when compressing.
-   * @return {GenericWorker} the new worker compressing the content.
    */
   static createWorkerFrom(
     uncompressedWorker: GenericWorker,

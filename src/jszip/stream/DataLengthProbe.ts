@@ -7,14 +7,11 @@ export default class DataLengthProbe extends GenericWorker {
   propName: string;
 
   constructor(propName: string) {
-    super('DataLengthProbe for ' + propName);
+    super(`DataLengthProbe for ${propName}`);
     this.propName = propName;
     this.withStreamInfo(propName, 0);
   }
 
-  /**
-   * @see GenericWorker.processChunk
-   */
   processChunk(chunk): void {
     if (chunk) {
       const length = this.streamInfo[this.propName] || 0;

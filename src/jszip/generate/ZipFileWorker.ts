@@ -6,15 +6,10 @@ import signature from '../signature';
 
 /**
  * Transform an integer into a string in hexadecimal.
- * @private
- * @param {number} dec the number to convert.
- * @param {number} bytes the number of bytes to generate.
- * @returns {string} the result.
  */
-function decToHex(dec, bytes) {
-  let hex = '',
-    i;
-  for (i = 0; i < bytes; i++) {
+function decToHex(dec: number, bytes: number): string {
+  let hex = '';
+  for (let i = 0; i < bytes; i++) {
     hex += String.fromCharCode(dec & 0xff);
     dec = dec >>> 8;
   }
@@ -22,36 +17,8 @@ function decToHex(dec, bytes) {
 }
 
 /**
- * Generate the UNIX part of the external file attributes.
- * @param {Object} unixPermissions the unix permissions or null.
- * @param {Boolean} isDir true if the entry is a directory, false otherwise.
- * @return {Number} a 32 bit integer.
- *
- * adapted from http://unix.stackexchange.com/questions/14705/the-zip-formats-external-file-attribute :
- *
- * TTTTsstrwxrwxrwx0000000000ADVSHR
- * ^^^^____________________________ file type, see zipinfo.c (UNX_*)
- *     ^^^_________________________ setuid, setgid, sticky
- *        ^^^^^^^^^________________ permissions
- *                 ^^^^^^^^^^______ not used ?
- *                           ^^^^^^ DOS attribute bits : Archive, Directory, Volume label, System file, Hidden, Read only
- */
-function generateUnixExternalFileAttr(unixPermissions, isDir) {
-  let result = unixPermissions;
-  if (!unixPermissions) {
-    // I can't use octal values in strict mode, hence the hexa.
-    //  040775 => 0x41fd
-    // 0100664 => 0x81b4
-    result = isDir ? 0x41fd : 0x81b4;
-  }
-  return (result & 0xffff) << 16;
-}
-
-/**
  * Generate the DOS part of the external file attributes.
  * @param {Object} dosPermissions the dos permissions or null.
- * @param {Boolean} isDir true if the entry is a directory, false otherwise.
- * @return {Number} a 32 bit integer.
  *
  * Bit 0     Read-Only
  * Bit 1     Hidden
@@ -60,7 +27,7 @@ function generateUnixExternalFileAttr(unixPermissions, isDir) {
  * Bit 4     Directory
  * Bit 5     Archive
  */
-function generateDosExternalFileAttr(dosPermissions, isDir) {
+function generateDosExternalFileAttr(dosPermissions): number {
   // the dir flag is already set for compatibility
   return (dosPermissions || 0) & 0x3f;
 }
@@ -68,36 +35,21 @@ function generateDosExternalFileAttr(dosPermissions, isDir) {
 /**
  * Generate the various parts used in the construction of the final zip file.
  * @param {Object} streamInfo the hash with information about the compressed file.
- * @param {Boolean} streamedContent is the content streamed ?
- * @param {Boolean} streamingEnded is the stream finished ?
- * @param {number} offset the current offset from the start of the zip file.
- * @param {String} platform let's pretend we are this platform (change platform dependents fields)
- * @param {Function} encodeFileName the function to encode the file name / comment.
- * @return {Object} the zip parts.
  */
 function generateZipParts(
   streamInfo,
-  streamedContent,
-  streamingEnded,
-  offset,
-  platform,
-  encodeFileName
-) {
+  offset: number
+): {
+  fileRecord: string;
+  dirRecord: string;
+} {
   const file = streamInfo['file'];
   const compression = streamInfo['compression'];
-  const useCustomEncoding = encodeFileName !== utf8encode;
-  const encodedFileName = transformTo('string', encodeFileName(file.name));
-  const utfEncodedFileName = transformTo('string', utf8encode(file.name));
-  const comment = file.comment;
-  const encodedComment = transformTo('string', encodeFileName(comment));
-  const utfEncodedComment = transformTo('string', utf8encode(comment));
-  const useUTF8ForFileName = utfEncodedFileName.length !== file.name.length;
-  const useUTF8ForComment = utfEncodedComment.length !== comment.length;
-  let dosTime;
-  let dosDate;
-  let extraFields = '';
-  let unicodePathExtraField = '';
-  let unicodeCommentExtraField = '';
+  const encodedFileName = transformTo(
+    'string',
+    utf8encode(file.name)
+  ) as string;
+  const useUTF8ForFileName = encodedFileName.length !== file.name.length;
   const dir = file.dir;
   const date = file.date;
 
@@ -109,20 +61,12 @@ function generateZipParts(
 
   // if the content is streamed, the sizes/crc32 are only available AFTER
   // the end of the stream.
-  if (!streamedContent || streamingEnded) {
-    dataInfo.crc32 = streamInfo['crc32'];
-    dataInfo.compressedSize = streamInfo['compressedSize'];
-    dataInfo.uncompressedSize = streamInfo['uncompressedSize'];
-  }
+  dataInfo.crc32 = streamInfo['crc32'];
+  dataInfo.compressedSize = streamInfo['compressedSize'];
+  dataInfo.uncompressedSize = streamInfo['uncompressedSize'];
 
   let bitflag = 0;
-  if (streamedContent) {
-    // Bit 3: the sizes/crc32 are set to zero in the local header.
-    // The correct values are put in the data descriptor immediately
-    // following the compressed data.
-    bitflag |= 0x0008;
-  }
-  if (!useCustomEncoding && (useUTF8ForFileName || useUTF8ForComment)) {
+  if (useUTF8ForFileName) {
     // Bit 11: Language encoding flag (EFS).
     bitflag |= 0x0800;
   }
@@ -133,31 +77,29 @@ function generateZipParts(
     // dos or unix, we set the dos dir flag
     extFileAttr |= 0x00010;
   }
-  if (platform === 'UNIX') {
-    versionMadeBy = 0x031e; // UNIX, version 3.0
-    extFileAttr |= generateUnixExternalFileAttr(file.unixPermissions, dir);
-  } else {
-    // DOS or other, fallback to DOS
-    versionMadeBy = 0x0014; // DOS, version 2.0
-    extFileAttr |= generateDosExternalFileAttr(file.dosPermissions, dir);
-  }
+
+  versionMadeBy = 0x0014; // DOS, version 2.0
+  extFileAttr |= generateDosExternalFileAttr(file.dosPermissions);
 
   // date
   // @see http://www.delorie.com/djgpp/doc/rbinter/it/52/13.html
   // @see http://www.delorie.com/djgpp/doc/rbinter/it/65/16.html
   // @see http://www.delorie.com/djgpp/doc/rbinter/it/66/16.html
 
-  dosTime = date.getUTCHours();
+  let dosTime = date.getUTCHours();
   dosTime = dosTime << 6;
   dosTime = dosTime | date.getUTCMinutes();
   dosTime = dosTime << 5;
   dosTime = dosTime | (date.getUTCSeconds() / 2);
 
-  dosDate = date.getUTCFullYear() - 1980;
+  let dosDate = date.getUTCFullYear() - 1980;
   dosDate = dosDate << 4;
   dosDate = dosDate | (date.getUTCMonth() + 1);
   dosDate = dosDate << 5;
   dosDate = dosDate | date.getUTCDate();
+
+  let extraFields = '';
+  let unicodePathExtraField = '';
 
   if (useUTF8ForFileName) {
     // set the unicode path extra field. unzip needs at least one extra
@@ -175,7 +117,7 @@ function generateZipParts(
       // NameCRC32
       decToHex(crc32(encodedFileName), 4) +
       // UnicodeName
-      utfEncodedFileName;
+      encodedFileName;
 
     extraFields +=
       // Info-ZIP Unicode Path Extra Field
@@ -186,26 +128,7 @@ function generateZipParts(
       unicodePathExtraField;
   }
 
-  if (useUTF8ForComment) {
-    unicodeCommentExtraField =
-      // Version
-      decToHex(1, 1) +
-      // CommentCRC32
-      decToHex(crc32(encodedComment), 4) +
-      // UnicodeName
-      utfEncodedComment;
-
-    extraFields +=
-      // Info-ZIP Unicode Path Extra Field
-      '\x75\x63' +
-      // size
-      decToHex(unicodeCommentExtraField.length, 2) +
-      // content
-      unicodeCommentExtraField;
-  }
-
   let header = '';
-
   // version needed to extract
   header += '\x0A\x00';
   // general purpose bit flag
@@ -237,7 +160,7 @@ function generateZipParts(
     // file header (common to file and central directory)
     header +
     // file comment length
-    decToHex(encodedComment.length, 2) +
+    decToHex(0, 2) +
     // disk number start
     '\x00\x00' +
     // internal file attributes TODO
@@ -249,37 +172,24 @@ function generateZipParts(
     // file name
     encodedFileName +
     // extra field
-    extraFields +
-    // file comment
-    encodedComment;
+    extraFields;
 
   return {
-    fileRecord: fileRecord,
-    dirRecord: dirRecord,
+    fileRecord,
+    dirRecord,
   };
 }
 
 /**
  * Generate the EOCD record.
- * @param {Number} entriesCount the number of entries in the zip file.
- * @param {Number} centralDirLength the length (in bytes) of the central dir.
- * @param {Number} localDirLength the length (in bytes) of the local dir.
- * @param {String} comment the zip file comment as a binary string.
- * @param {Function} encodeFileName the function to encode the comment.
- * @return {String} the EOCD record.
  */
 function generateCentralDirectoryEnd(
-  entriesCount,
-  centralDirLength,
-  localDirLength,
-  comment,
-  encodeFileName
-) {
-  let dirEnd = '';
-  const encodedComment = transformTo('string', encodeFileName(comment));
-
+  entriesCount: number,
+  centralDirLength: number,
+  localDirLength: number
+): string {
   // end of central dir signature
-  dirEnd =
+  return (
     signature.CENTRAL_DIRECTORY_END +
     // number of this disk
     '\x00\x00' +
@@ -294,87 +204,38 @@ function generateCentralDirectoryEnd(
     // offset of start of central directory with respect to the starting disk number
     decToHex(localDirLength, 4) +
     // .ZIP file comment length
-    decToHex(encodedComment.length, 2) +
-    // .ZIP file comment
-    encodedComment;
-
-  return dirEnd;
-}
-
-/**
- * Generate data descriptors for a file entry.
- * @param {Object} streamInfo the hash generated by a worker, containing information
- * on the file entry.
- * @return {String} the data descriptors.
- */
-function generateDataDescriptors(streamInfo) {
-  let descriptor = '';
-  descriptor =
-    signature.DATA_DESCRIPTOR +
-    // crc-32                          4 bytes
-    decToHex(streamInfo['crc32'], 4) +
-    // compressed size                 4 bytes
-    decToHex(streamInfo['compressedSize'], 4) +
-    // uncompressed size               4 bytes
-    decToHex(streamInfo['uncompressedSize'], 4);
-
-  return descriptor;
+    decToHex(0, 2)
+  );
 }
 
 /**
  * A worker to concatenate other workers to create a zip file.
- * @param {Boolean} streamFiles `true` to stream the content of the files,
- * `false` to accumulate it.
- * @param {String} comment the comment to use.
- * @param {String} platform the platform to use, "UNIX" or "DOS".
- * @param {Function} encodeFileName the function to encode file names and comments.
  */
 export default class ZipFileWorker extends GenericWorker {
-  bytesWritten: number;
-  zipPlatform: any;
-  encodeFileName: any;
-  streamFiles: any;
-  accumulate: any;
-  contentBuffer: any;
-  dirRecords: any;
-  currentSourceOffset: any;
-  entriesCount: any;
-  currentFile: any;
-  _sources: any;
+  // The number of bytes written so far. This doesn't count accumulated chunks.
+  bytesWritten = 0;
+  // If `streamFiles` is false, we will need to accumulate the content of the
+  // files to calculate sizes / crc32 (and write them *before* the content).
+  // This boolean indicates if we are accumulating chunks (it will change a lot
+  // during the lifetime of this worker).
+  accumulate = false;
+  // The buffer receiving chunks when accumulating content.
+  contentBuffer = [];
+  // The list of generated directory records.
+  dirRecords = [];
+  // The offset (in bytes) from the beginning of the zip file for the current source.
+  currentSourceOffset = 0;
+  // The total number of entries in this zip file.
+  entriesCount = 0;
+  // the name of the file currently being added, null when handling the end of the zip file.
+  // Used for the emitted metadata.
+  currentFile = null;
+  _sources = [];
 
-  constructor(streamFiles, platform, encodeFileName) {
+  constructor() {
     super('ZipFileWorker');
-    // The number of bytes written so far. This doesn't count accumulated chunks.
-    this.bytesWritten = 0;
-    // The platform "generating" the zip file.
-    this.zipPlatform = platform;
-    // the function to encode file names and comments.
-    this.encodeFileName = encodeFileName;
-    // Should we stream the content of the files ?
-    this.streamFiles = streamFiles;
-    // If `streamFiles` is false, we will need to accumulate the content of the
-    // files to calculate sizes / crc32 (and write them *before* the content).
-    // This boolean indicates if we are accumulating chunks (it will change a lot
-    // during the lifetime of this worker).
-    this.accumulate = false;
-    // The buffer receiving chunks when accumulating content.
-    this.contentBuffer = [];
-    // The list of generated directory records.
-    this.dirRecords = [];
-    // The offset (in bytes) from the beginning of the zip file for the current source.
-    this.currentSourceOffset = 0;
-    // The total number of entries in this zip file.
-    this.entriesCount = 0;
-    // the name of the file currently being added, null when handling the end of the zip file.
-    // Used for the emitted metadata.
-    this.currentFile = null;
-
-    this._sources = [];
   }
 
-  /**
-   * @see GenericWorker.push
-   */
   push(chunk): void {
     const currentFilePercent = chunk.meta.percent || 0;
     const entriesCount = this.entriesCount;
@@ -402,73 +263,34 @@ export default class ZipFileWorker extends GenericWorker {
    * The worker started a new source (an other worker).
    * @param {Object} streamInfo the streamInfo object from the new source.
    */
-  openedSource(streamInfo) {
+  openedSource(streamInfo): void {
     this.currentSourceOffset = this.bytesWritten;
     this.currentFile = streamInfo['file'].name;
-
-    const streamedContent = this.streamFiles && !streamInfo['file'].dir;
-
-    // don't stream folders (because they don't have any content)
-    if (streamedContent) {
-      const record = generateZipParts(
-        streamInfo,
-        streamedContent,
-        false,
-        this.currentSourceOffset,
-        this.zipPlatform,
-        this.encodeFileName
-      );
-      this.push({
-        data: record.fileRecord,
-        meta: { percent: 0 },
-      });
-    } else {
-      // we need to wait for the whole file before pushing anything
-      this.accumulate = true;
-    }
+    this.accumulate = true;
   }
 
   /**
    * The worker finished a source (an other worker).
    * @param {Object} streamInfo the streamInfo object from the finished source.
    */
-  closedSource(streamInfo) {
+  closedSource(streamInfo): void {
     this.accumulate = false;
-    const streamedContent = this.streamFiles && !streamInfo['file'].dir;
-    const record = generateZipParts(
-      streamInfo,
-      streamedContent,
-      true,
-      this.currentSourceOffset,
-      this.zipPlatform,
-      this.encodeFileName
-    );
+    const record = generateZipParts(streamInfo, this.currentSourceOffset);
 
     this.dirRecords.push(record.dirRecord);
-    if (streamedContent) {
-      // after the streamed file, we put data descriptors
-      this.push({
-        data: generateDataDescriptors(streamInfo),
-        meta: { percent: 100 },
-      });
-    } else {
-      // the content wasn't streamed, we need to push everything now
-      // first the file record, then the content
-      this.push({
-        data: record.fileRecord,
-        meta: { percent: 0 },
-      });
-      while (this.contentBuffer.length) {
-        this.push(this.contentBuffer.shift());
-      }
+    // the content wasn't streamed, we need to push everything now
+    // first the file record, then the content
+    this.push({
+      data: record.fileRecord,
+      meta: { percent: 0 },
+    });
+    while (this.contentBuffer.length) {
+      this.push(this.contentBuffer.shift());
     }
     this.currentFile = null;
   }
 
-  /**
-   * @see GenericWorker.flush
-   */
-  flush() {
+  flush(): void {
     const localDirLength = this.bytesWritten;
     for (let i = 0; i < this.dirRecords.length; i++) {
       this.push({
@@ -481,9 +303,7 @@ export default class ZipFileWorker extends GenericWorker {
     const dirEnd = generateCentralDirectoryEnd(
       this.dirRecords.length,
       centralDirLength,
-      localDirLength,
-      '',
-      this.encodeFileName
+      localDirLength
     );
 
     this.push({
@@ -495,7 +315,7 @@ export default class ZipFileWorker extends GenericWorker {
   /**
    * Prepare the next source to be read.
    */
-  prepareNextSource() {
+  prepareNextSource(): void {
     this.previous = this._sources.shift();
     this.openedSource(this.previous.streamInfo);
     if (this.isPaused) {
@@ -505,34 +325,27 @@ export default class ZipFileWorker extends GenericWorker {
     }
   }
 
-  /**
-   * @see GenericWorker.registerPrevious
-   */
-  registerPrevious(previous) {
+  registerPrevious(previous: GenericWorker): GenericWorker {
     this._sources.push(previous);
-    const self = this;
 
-    previous.on('data', function(chunk) {
-      self.processChunk(chunk);
+    previous.on('data', chunk => {
+      this.processChunk(chunk);
     });
-    previous.on('end', function() {
-      self.closedSource(self.previous.streamInfo);
-      if (self._sources.length) {
-        self.prepareNextSource();
+    previous.on('end', () => {
+      this.closedSource(this.previous.streamInfo);
+      if (this._sources.length) {
+        this.prepareNextSource();
       } else {
-        self.end();
+        this.end();
       }
     });
-    previous.on('error', function(e) {
-      self.error(e);
+    previous.on('error', e => {
+      this.error(e);
     });
     return this;
   }
 
-  /**
-   * @see GenericWorker.resume
-   */
-  resume() {
+  resume(): boolean {
     if (!GenericWorker.prototype.resume.call(this)) {
       return false;
     }
@@ -547,10 +360,7 @@ export default class ZipFileWorker extends GenericWorker {
     }
   }
 
-  /**
-   * @see GenericWorker.error
-   */
-  error(e) {
+  error(e): boolean {
     const sources = this._sources;
     if (!GenericWorker.prototype.error.call(this, e)) {
       return false;
@@ -565,10 +375,7 @@ export default class ZipFileWorker extends GenericWorker {
     return true;
   }
 
-  /**
-   * @see GenericWorker.lock
-   */
-  lock() {
+  lock(): void {
     GenericWorker.prototype.lock.call(this);
     const sources = this._sources;
     for (let i = 0; i < sources.length; i++) {

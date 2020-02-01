@@ -1,4 +1,4 @@
-import * as utils from '../utils';
+import { newBlob, transformTo, checkSupport, delay } from '../utils';
 import ConvertWorker from './ConvertWorker';
 import GenericWorker from './GenericWorker';
 
@@ -6,29 +6,28 @@ import GenericWorker from './GenericWorker';
  * Apply the final transformation of the data. If the user wants a Blob for
  * example, it's easier to work with an U8intArray and finally do the
  * ArrayBuffer/Blob conversion.
- * @return {String|Uint8Array|ArrayBuffer|Buffer|Blob} the content in the right format.
  */
-function transformZipOutput(content: Uint8Array) {
-  return utils.newBlob(utils.transformTo('arraybuffer', content));
+function transformZipOutput(content: Uint8Array): Blob {
+  return newBlob(transformTo('arraybuffer', content));
 }
 
 /**
  * Concatenate an array of data of the given type.
  * @param {Array} dataArray the array containing the data chunks to concatenate
- * @throws Error if the asked type is unsupported
  */
 function concat(dataArray): Uint8Array {
-  let index = 0;
   let totalLength = 0;
   for (let i = 0; i < dataArray.length; i++) {
     totalLength += dataArray[i].length;
   }
-
   const res = new Uint8Array(totalLength);
+
+  let index = 0;
   for (let i = 0; i < dataArray.length; i++) {
     res.set(dataArray[i], index);
     index += dataArray[i].length;
   }
+
   return res;
 }
 
@@ -36,13 +35,14 @@ function concat(dataArray): Uint8Array {
  * An helper to easily use workers outside of JSZip.
  * @constructor
  * @param {Worker} worker the worker to wrap
+ * @param {String} mimeType the mime type of the content, if applicable.
  */
 export default class StreamHelper {
   worker: GenericWorker;
 
   constructor(worker: GenericWorker) {
     try {
-      utils.checkSupport('uint8array');
+      checkSupport('uint8array');
       this.worker = worker.pipe(new ConvertWorker('uint8array'));
       // the last workers can be rewired without issues but we need to
       // prevent any updates on previous workers.
@@ -57,7 +57,7 @@ export default class StreamHelper {
    * Listen a StreamHelper, accumulate its content and concatenate it into a
    * complete block.
    */
-  accumulate(): Promise<any> {
+  accumulate() {
     return new Promise((resolve, reject) => {
       let dataArray = [];
       this.on('data', data => {
@@ -90,7 +90,7 @@ export default class StreamHelper {
       });
     } else {
       this.worker.on(event, (...args) => {
-        utils.delay(fn, args, this);
+        delay(fn, args, this);
       });
     }
     return this;
@@ -100,7 +100,7 @@ export default class StreamHelper {
    * Resume the flow of chunks.
    */
   resume(): StreamHelper {
-    utils.delay(this.worker.resume, [], this.worker);
+    delay(this.worker.resume, [], this.worker);
     return this;
   }
 

@@ -1,4 +1,5 @@
 import DataWorker from './stream/DataWorker';
+import { Utf8EncodeWorker } from './utf8';
 import CompressedObject from './compressedObject';
 import GenericWorker from './stream/GenericWorker';
 
@@ -9,16 +10,17 @@ import GenericWorker from './stream/GenericWorker';
  * @param {Object} options the options of the file
  */
 export default class ZipObject {
-  name: string;
-  data: Promise<string>;
-  dir: any;
-  date: any;
-  comment: any;
-  unixPermissions: any;
-  dosPermissions: any;
-  options: any;
+  name;
+  dir;
+  date;
+  comment;
+  unixPermissions;
+  dosPermissions;
+  _data;
+  _dataBinary;
+  options;
 
-  constructor(name: string, data: Promise<string>, options) {
+  constructor(name: string, data, options) {
     this.name = name;
     this.dir = options.dir;
     this.date = options.date;
@@ -26,7 +28,8 @@ export default class ZipObject {
     this.unixPermissions = options.unixPermissions;
     this.dosPermissions = options.dosPermissions;
 
-    this.data = data;
+    this._data = data;
+    this._dataBinary = options.binary;
     // keep only the compression
     this.options = {
       compression: options.compression,
@@ -42,7 +45,10 @@ export default class ZipObject {
    * @return Worker the worker.
    */
   _compressWorker(compression, compressionOptions): GenericWorker {
-    const result = new DataWorker(this.data);
+    let result: GenericWorker = new DataWorker(this._data);
+    if (!this._dataBinary) {
+      result = result.pipe(new Utf8EncodeWorker());
+    }
     return CompressedObject.createWorkerFrom(
       result,
       compression,

@@ -8,9 +8,6 @@
  * A chunk is an object with 2 attributes : `meta` and `data`. The former is an
  * object containing anything (`percent` for example), see each worker for more
  * details. The latter is the real data (String, Uint8Array, etc).
- *
- * @constructor
- * @param {String} name the name of the stream (mainly used for debugging purposes)
  */
 export default class GenericWorker {
   // the name of the worker
@@ -72,10 +69,8 @@ export default class GenericWorker {
 
   /**
    * End the stream with an error.
-   * @param {Error} e the error which caused the premature end.
-   * @return {Boolean} true if this call ended the worker with an error, false otherwise.
    */
-  error(e): boolean {
+  error(e: Error): boolean {
     if (this.isFinished) {
       return false;
     }
@@ -102,7 +97,7 @@ export default class GenericWorker {
   /**
    * Add a callback on an event.
    */
-  on(name: string, listener: (...args) => void): GenericWorker {
+  on(name: string, listener): GenericWorker {
     this._listeners[name].push(listener);
     return this;
   }
@@ -206,12 +201,11 @@ export default class GenericWorker {
    * Flush any remaining bytes as the stream is ending.
    */
   flush(): void {
-    return;
+    // !
   }
 
   /**
    * Process a chunk. This is usually the method overridden.
-   * @param {Object} chunk the chunk to process.
    */
   processChunk(chunk): void {
     this.push(chunk);
@@ -256,9 +250,9 @@ export default class GenericWorker {
    * Pretty print the workers chain.
    */
   toString(): string {
-    const me = 'Worker ' + this.name;
+    const me = `Worker ${this.name}`;
     if (this.previous) {
-      return this.previous + ' -> ' + me;
+      return `${this.previous} -> ${me}`;
     } else {
       return me;
     }

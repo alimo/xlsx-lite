@@ -1,4 +1,4 @@
-import support from './support';
+import GenericWorker from './stream/GenericWorker';
 
 /**
  * The following functions come from pako, from pako/lib/utils/strings
@@ -6,18 +6,13 @@ import support from './support';
  */
 
 // convert string to array (typed, when possible)
-function string2buf(str: string): Uint8Array | number[] {
-  let c;
-  let c2;
-  let mPos;
-  const strLen = str.length;
-  let bufLen = 0;
-
+function string2buf(str: string): Uint8Array {
   // count binary size
-  for (mPos = 0; mPos < strLen; mPos++) {
-    c = str.charCodeAt(mPos);
-    if ((c & 0xfc00) === 0xd800 && mPos + 1 < strLen) {
-      c2 = str.charCodeAt(mPos + 1);
+  let bufLen = 0;
+  for (let mPos = 0; mPos < str.length; mPos++) {
+    let c = str.charCodeAt(mPos);
+    if ((c & 0xfc00) === 0xd800 && mPos + 1 < str.length) {
+      const c2 = str.charCodeAt(mPos + 1);
       if ((c2 & 0xfc00) === 0xdc00) {
         c = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
         mPos++;
@@ -27,18 +22,13 @@ function string2buf(str: string): Uint8Array | number[] {
   }
 
   // allocate buffer
-  let buf: Uint8Array | number[];
-  if (support.uint8array) {
-    buf = new Uint8Array(bufLen);
-  } else {
-    buf = new Array(bufLen);
-  }
+  const buf = new Uint8Array(bufLen);
 
   // convert
   for (let i = 0, mPos = 0; i < bufLen; mPos++) {
-    c = str.charCodeAt(mPos);
-    if ((c & 0xfc00) === 0xd800 && mPos + 1 < strLen) {
-      c2 = str.charCodeAt(mPos + 1);
+    let c = str.charCodeAt(mPos);
+    if ((c & 0xfc00) === 0xd800 && mPos + 1 < str.length) {
+      const c2 = str.charCodeAt(mPos + 1);
       if ((c2 & 0xfc00) === 0xdc00) {
         c = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
         mPos++;
@@ -73,8 +63,23 @@ function string2buf(str: string): Uint8Array | number[] {
 /**
  * Transform a javascript string into an array (typed if possible) of bytes,
  * UTF-8 encoded.
- * @return {Array|Uint8Array|Buffer} the UTF-8 encoded string.
  */
-export function utf8encode(str: string): Uint8Array | number[] {
+export function utf8encode(str: string): Uint8Array {
   return string2buf(str);
+}
+
+/**
+ * A worker to endcode string chunks into utf8 encoded binary chunks.
+ */
+export class Utf8EncodeWorker extends GenericWorker {
+  constructor() {
+    super('utf-8 encode');
+  }
+
+  processChunk(chunk): void {
+    this.push({
+      data: utf8encode(chunk.data),
+      meta: chunk.meta,
+    });
+  }
 }

@@ -8,7 +8,7 @@ export default class ConvertWorker extends GenericWorker {
   destType: string;
 
   constructor(destType: string) {
-    super('ConvertWorker to ' + destType);
+    super(`ConvertWorker to ${destType}`);
     this.destType = destType;
   }
 
