@@ -18,7 +18,7 @@ export default class Style {
   index: number;
   fontIndex: number;
   fillIndex: number;
-  borderIndex: number;
+  borderIndex = 0;
   alignment: AlignmentConfig = null;
 
   constructor(config: StyleConfig, index: number, elements: StyleElements) {
@@ -79,7 +79,7 @@ export default class Style {
       fillId: this.fillIndex,
       applyFill: typeof this.fillIndex === 'number' ? 'true' : undefined,
       borderId: this.borderIndex,
-      applyBorder: typeof this.borderIndex === 'number' ? 'true' : undefined,
+      applyBorder: 'true',
       applyAlignment: this.alignment ? 'true' : undefined,
       _c: [
         this.alignment && {

@@ -20,7 +20,7 @@ export default class XLSX {
   styleElements: StyleElements = {
     fonts: [],
     fills: [],
-    borders: [],
+    borders: [new Border({})],
   };
 
   constructor() {
