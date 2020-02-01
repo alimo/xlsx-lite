@@ -78,35 +78,35 @@ export default class Border {
     return {
       _t: 'border',
       _c: [
-        {
+        topBorder.style && {
           _t: 'top',
           style: topBorder.style,
           _c: topBorder.color && [
             { _t: 'color', rgb: resolveColor(topBorder.color) },
           ],
         },
-        {
+        bottomBorder.style && {
           _t: 'bottom',
           style: bottomBorder.style,
           _c: bottomBorder.color && [
             { _t: 'color', rgb: resolveColor(bottomBorder.color) },
           ],
         },
-        {
+        startBorder.style && {
           _t: 'start',
           style: startBorder.style,
           _c: startBorder.color && [
             { _t: 'color', rgb: resolveColor(startBorder.color) },
           ],
         },
-        {
+        endBorder.style && {
           _t: 'end',
           style: endBorder.style,
           _c: endBorder.color && [
             { _t: 'color', rgb: resolveColor(endBorder.color) },
           ],
         },
-      ],
+      ].filter(Boolean),
     };
   }
 }
