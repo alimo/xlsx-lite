@@ -95,13 +95,18 @@ export default class Sheet {
 
     if (type === 'string') {
       cell.t = 'inlineStr';
+      cell.v = (value as string)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
     } else if (type === 'number') {
       cell.t = 'n';
+      cell.v = value;
     } else {
       throw new Error(`Invalid cell type provided: ${type}`);
     }
-
-    cell.v = value;
   }
 
   get(position: CellPosition): CellValue {
