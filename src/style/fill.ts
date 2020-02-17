@@ -21,10 +21,7 @@ export default class Fill {
         {
           _t: 'patternFill',
           patternType: 'solid',
-          _c: [
-            { _t: 'bgColor', rgb: resolveColor(backgroundColor) },
-            { _t: 'fgColor', rgb: resolveColor(backgroundColor) },
-          ],
+          _c: [{ _t: 'fgColor', rgb: resolveColor(backgroundColor) }],
         },
       ],
     };
