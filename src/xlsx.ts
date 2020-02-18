@@ -24,7 +24,13 @@ export default class XLSX {
   };
 
   constructor() {
-    this.style({ fontFamily: 'Arial' });
+    this.style({
+      fontFamily: 'Arial',
+      backgroundColor: 'none',
+    });
+    this.style({
+      backgroundColor: 'none',
+    });
   }
 
   sheet(name: string): Sheet {

@@ -24,7 +24,10 @@ export default class Cell {
     this.col = col;
   }
 
-  set(value: CellValue, options?: CellOptions): void {
+  set(
+    value: CellValue | CellValue[] | CellValue[][],
+    options?: CellOptions
+  ): void {
     this.sheet.set(value, {
       row: this.row,
       col: this.col,

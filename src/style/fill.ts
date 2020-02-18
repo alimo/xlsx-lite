@@ -20,8 +20,10 @@ export default class Fill {
       _c: [
         {
           _t: 'patternFill',
-          patternType: 'solid',
-          _c: [{ _t: 'fgColor', rgb: resolveColor(backgroundColor) }],
+          patternType: backgroundColor !== 'none' ? 'solid' : 'none',
+          _c: backgroundColor !== 'none' && [
+            { _t: 'fgColor', rgb: resolveColor(backgroundColor) },
+          ],
         },
       ],
     };

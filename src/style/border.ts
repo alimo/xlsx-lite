@@ -26,11 +26,11 @@ export interface BorderConfig {
   borderBottomStyle?: BorderStyle;
   borderBottomColor?: string;
 
-  borderStartStyle?: BorderStyle;
-  borderStartColor?: string;
+  borderLeftStyle?: BorderStyle;
+  borderLeftColor?: string;
 
-  borderEndStyle?: BorderStyle;
-  borderEndColor?: string;
+  borderRightStyle?: BorderStyle;
+  borderRightColor?: string;
 }
 
 export default class Border {
@@ -52,10 +52,10 @@ export default class Border {
       borderTopColor,
       borderBottomStyle,
       borderBottomColor,
-      borderStartStyle,
-      borderStartColor,
-      borderEndStyle,
-      borderEndColor,
+      borderLeftStyle,
+      borderLeftColor,
+      borderRightStyle,
+      borderRightColor,
     } = this.config;
 
     const topBorder = {
@@ -66,18 +66,32 @@ export default class Border {
       style: borderBottomStyle || borderVerticalStyle || borderStyle,
       color: borderBottomColor || borderVerticalColor || borderColor,
     };
-    const startBorder = {
-      style: borderStartStyle || borderHorizontalStyle || borderStyle,
-      color: borderStartColor || borderHorizontalColor || borderColor,
+    const leftBorder = {
+      style: borderLeftStyle || borderHorizontalStyle || borderStyle,
+      color: borderLeftColor || borderHorizontalColor || borderColor,
     };
-    const endBorder = {
-      style: borderEndStyle || borderHorizontalStyle || borderStyle,
-      color: borderEndColor || borderHorizontalColor || borderColor,
+    const rightBorder = {
+      style: borderRightStyle || borderHorizontalStyle || borderStyle,
+      color: borderRightColor || borderHorizontalColor || borderColor,
     };
 
     return {
       _t: 'border',
       _c: [
+        leftBorder.style && {
+          _t: 'left',
+          style: leftBorder.style,
+          _c: leftBorder.color && [
+            { _t: 'color', rgb: resolveColor(leftBorder.color) },
+          ],
+        },
+        rightBorder.style && {
+          _t: 'right',
+          style: rightBorder.style,
+          _c: rightBorder.color && [
+            { _t: 'color', rgb: resolveColor(rightBorder.color) },
+          ],
+        },
         topBorder.style && {
           _t: 'top',
           style: topBorder.style,
@@ -90,20 +104,6 @@ export default class Border {
           style: bottomBorder.style,
           _c: bottomBorder.color && [
             { _t: 'color', rgb: resolveColor(bottomBorder.color) },
-          ],
-        },
-        startBorder.style && {
-          _t: 'start',
-          style: startBorder.style,
-          _c: startBorder.color && [
-            { _t: 'color', rgb: resolveColor(startBorder.color) },
-          ],
-        },
-        endBorder.style && {
-          _t: 'end',
-          style: endBorder.style,
-          _c: endBorder.color && [
-            { _t: 'color', rgb: resolveColor(endBorder.color) },
           ],
         },
       ].filter(Boolean),

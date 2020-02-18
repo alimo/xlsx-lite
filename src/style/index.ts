@@ -54,10 +54,10 @@ export default class Style {
       config.borderTopColor ||
       config.borderBottomStyle ||
       config.borderBottomColor ||
-      config.borderStartStyle ||
-      config.borderStartColor ||
-      config.borderEndStyle ||
-      config.borderEndColor
+      config.borderLeftStyle ||
+      config.borderLeftColor ||
+      config.borderRightStyle ||
+      config.borderRightColor
     ) {
       this.borderIndex = elements.borders.length;
       elements.borders.push(new Border(config));
