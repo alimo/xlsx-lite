@@ -61,9 +61,34 @@ export default class Sheet {
     return new Cell(this, row, col);
   }
 
-  set(value: CellValue, options: CellPosition & CellOptions): void {
+  set(
+    value: CellValue | CellValue[] | CellValue[][],
+    options: CellPosition & CellOptions
+  ): void {
     let { type } = options;
     const { row, col, style } = options;
+
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) {
+        const rowValue = value[i];
+        if (Array.isArray(rowValue)) {
+          for (let j = 0; j < rowValue.length; j++) {
+            const colValue = rowValue[j];
+            this.set(colValue, {
+              ...options,
+              row: row + i,
+              col: col + j,
+            });
+          }
+        } else {
+          this.set(rowValue, {
+            ...options,
+            row: row + i,
+          });
+        }
+      }
+      return;
+    }
 
     if (!type) {
       if (typeof value === 'string') {

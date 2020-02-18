@@ -38,6 +38,11 @@ sheet.style({
 sheet.row(1).col(1).set('foo');
 sheet.cell(1, 2).set('bar');
 sheet.set('baz', { row: 1, col: 3 });
+sheet.cell(1, 4).set([
+  'r1',
+  ['r2,c4', 'r2,c5', 'r2,c6'],
+  'r3',
+])
 
 // Get values
 console.log(sheet.row(1).col(1).get()); // foo
@@ -92,6 +97,7 @@ xlsx.save('test.xlsx');
 - [x] Cell border
 - [x] Column width and row height
 - [x] Righ-to-left
-- [ ] Accept array, array of arrays, and JSON to set values
+- [x] Accept array and array of arrays to set values
+- [ ] Accept JSON to set values
 - [ ] Fixed rows and columns
 - [ ] Formulas

@@ -49,13 +49,15 @@
       col: 5,
       style: redText,
     });
-    sheet1.set('People', { row: 1, col: 1 });
-    sheet1.set('vzf', { row: 2, col: 1 });
-    sheet1.set('gdb', { row: 3, col: 1 });
-    sheet1.set('bsy', { row: 4, col: 1 });
-    sheet1.set('kga', { row: 5, col: 1 });
-    sheet1.set('lbv', { row: 6, col: 1 });
-    sheet1.set('tew', { row: 7, col: 1 });
+    sheet1.cell(1, 1).set([
+      'People',
+      ['vzf', 'vzf2', 'vzf3'],
+      'gdb',
+      'bsy',
+      'kga',
+      'lbv',
+      'tew',
+    ]);
     sheet1.addFilter({
       from: { row: 1, col: 1 },
       to: { row: 7, col: 1 },
