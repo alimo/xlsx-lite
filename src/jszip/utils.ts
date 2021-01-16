@@ -37,7 +37,7 @@ export function newBlob(part: BlobPart): Blob {
   checkSupport('blob');
 
   return new Blob([part], {
-    type: 'application/zip',
+    type: 'application/octet-stream',
   });
 }
 
