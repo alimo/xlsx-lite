@@ -28,16 +28,10 @@ const buildConfigs = {
 export default Object.entries(buildConfigs).map(([, config]) => {
   return {
     input: 'src/index.ts',
-    output: config.output,
-    plugins: [
-      typescript(),
-      resolve(),
-      commonjs({
-        namedExports: {
-          'file-saver': ['saveAs'],
-        },
-      }),
-      terser(),
-    ],
+    output: {
+      ...config.output,
+      exports: 'auto',
+    },
+    plugins: [typescript(), resolve(), commonjs(), terser()],
   };
 });

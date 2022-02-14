@@ -21,7 +21,7 @@ export default class DataWorker extends GenericWorker {
     super('DataWorker');
 
     dataP.then(
-      data => {
+      (data) => {
         this.dataIsReady = true;
         this.data = data;
         this.max = (data && data.length) || 0;
@@ -29,7 +29,7 @@ export default class DataWorker extends GenericWorker {
           this._tickAndRepeat();
         }
       },
-      e => {
+      (e) => {
         this.error(e);
       }
     );

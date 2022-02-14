@@ -1,6 +1,6 @@
 import DataWorker from './stream/DataWorker';
 import { Utf8EncodeWorker } from './utf8';
-import CompressedObject from './compressedObject';
+import { createWorkerFrom } from './compressedObject';
 import GenericWorker from './stream/GenericWorker';
 
 /**
@@ -49,10 +49,6 @@ export default class ZipObject {
     if (!this._dataBinary) {
       result = result.pipe(new Utf8EncodeWorker());
     }
-    return CompressedObject.createWorkerFrom(
-      result,
-      compression,
-      compressionOptions
-    );
+    return createWorkerFrom(result, compression, compressionOptions);
   }
 }

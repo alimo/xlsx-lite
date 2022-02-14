@@ -148,13 +148,13 @@ export default class GenericWorker {
     // ... and adding our own bits
     this.mergeStreamInfo();
     this.previous = previous;
-    previous.on('data', chunk => {
+    previous.on('data', (chunk) => {
       this.processChunk(chunk);
     });
     previous.on('end', () => {
       this.end();
     });
-    previous.on('error', e => {
+    previous.on('error', (e) => {
       this.error(e);
     });
     return this;

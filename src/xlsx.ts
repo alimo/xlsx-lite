@@ -94,8 +94,7 @@ export default class XLSX {
           {
             _t: 'Relationship',
             Id: 'rId1',
-            Type:
-              'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
+            Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
             Target: 'xl/workbook.xml',
           },
         ],
@@ -130,15 +129,13 @@ export default class XLSX {
           {
             _t: 'Relationship',
             Id: 'rId1',
-            Type:
-              'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles',
+            Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles',
             Target: 'styles.xml',
           },
           ...this.sheets.map((sheet, index) => ({
             _t: 'Relationship',
             Id: `rId${index + 2}`,
-            Type:
-              'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
+            Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
             Target: `worksheets/sheet${index + 1}.xml`,
           })),
         ],
@@ -160,28 +157,28 @@ export default class XLSX {
           {
             _t: 'fonts',
             count: this.styleElements.fonts.length,
-            _c: this.styleElements.fonts.map(font => font.export()),
+            _c: this.styleElements.fonts.map((font) => font.export()),
           },
           {
             _t: 'fills',
             count: this.styleElements.fills.length,
-            _c: this.styleElements.fills.map(fill => fill.export()),
+            _c: this.styleElements.fills.map((fill) => fill.export()),
           },
           {
             _t: 'borders',
             count: this.styleElements.borders.length,
-            _c: this.styleElements.borders.map(border => border.export()),
+            _c: this.styleElements.borders.map((border) => border.export()),
           },
           {
             _t: 'cellXfs',
             count: this.styles.length,
-            _c: this.styles.map(style => style.export()),
+            _c: this.styles.map((style) => style.export()),
           },
         ],
       })
     );
 
-    zip.generateAsync().then(blob => {
+    zip.generateAsync().then((blob) => {
       saveAs(blob, filename);
     });
   }

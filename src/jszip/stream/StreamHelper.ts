@@ -60,10 +60,10 @@ export default class StreamHelper {
   accumulate() {
     return new Promise((resolve, reject) => {
       let dataArray = [];
-      this.on('data', data => {
+      this.on('data', (data) => {
         dataArray.push(data);
       })
-        .on('error', err => {
+        .on('error', (err) => {
           dataArray = [];
           reject(err);
         })
@@ -85,7 +85,7 @@ export default class StreamHelper {
    */
   on(event: string, fn): StreamHelper {
     if (event === 'data') {
-      this.worker.on(event, chunk => {
+      this.worker.on(event, (chunk) => {
         fn.call(this, chunk.data, chunk.meta);
       });
     } else {

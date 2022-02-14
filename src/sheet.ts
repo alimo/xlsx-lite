@@ -207,7 +207,7 @@ export default class Sheet {
           _t: 'c',
           t: cell.t,
           s: cell.s,
-          r: colIndexToLabel((col as unknown) as number) + row,
+          r: colIndexToLabel(col as unknown as number) + row,
           _c: colContent,
         });
       }
@@ -224,7 +224,7 @@ export default class Sheet {
   }
 
   exportFilters(): XMLObject[] {
-    return this.filters.map(filter => ({ _t: 'autoFilter', ref: filter }));
+    return this.filters.map((filter) => ({ _t: 'autoFilter', ref: filter }));
   }
 
   exportColumns(): XMLObject | null {
@@ -233,7 +233,7 @@ export default class Sheet {
     }
     return {
       _t: 'cols',
-      _c: Object.keys(this.colsData).map(columnIndex => ({
+      _c: Object.keys(this.colsData).map((columnIndex) => ({
         _t: 'col',
         min: columnIndex,
         max: columnIndex,

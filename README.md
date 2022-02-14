@@ -1,18 +1,22 @@
-# XLSX Lite ![minzip](https://badgen.net/bundlephobia/minzip/xlsx-lite)
+# XLSX Lite
 
 A lightweight XLSX spreadsheet creator for browser.
-
-## WORK IN PROGRESS
 
 :warning: **Do NOT use this package in production.**
 
 ## Notes
 
+- Row and column indexes **start at 1**.
 - A simple version of [JSZip](https://stuk.github.io/jszip/) is used for zipping.
 - [FileSaver.js](https://github.com/eligrey/FileSaver.js/) is used for downloading the result.
-- Row and column indexes **start at 1**.
 
 ## Install
+
+```bash
+npm install xlsx-lite
+```
+
+or
 
 ```bash
 yarn add xlsx-lite

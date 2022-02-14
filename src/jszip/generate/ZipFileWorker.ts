@@ -328,7 +328,7 @@ export default class ZipFileWorker extends GenericWorker {
   registerPrevious(previous: GenericWorker): GenericWorker {
     this._sources.push(previous);
 
-    previous.on('data', chunk => {
+    previous.on('data', (chunk) => {
       this.processChunk(chunk);
     });
     previous.on('end', () => {
@@ -339,7 +339,7 @@ export default class ZipFileWorker extends GenericWorker {
         this.end();
       }
     });
-    previous.on('error', e => {
+    previous.on('error', (e) => {
       this.error(e);
     });
     return this;
