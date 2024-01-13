@@ -2,7 +2,7 @@
 
 A lightweight XLSX spreadsheet creator for browser.
 
-:warning: **Do NOT use this package in production.**
+:warning: This is an experimental project. **Use at your own risk.**
 
 ## Notes
 
@@ -14,12 +14,6 @@ A lightweight XLSX spreadsheet creator for browser.
 
 ```bash
 npm install xlsx-lite
-```
-
-or
-
-```bash
-yarn add xlsx-lite
 ```
 
 ## Usage Example

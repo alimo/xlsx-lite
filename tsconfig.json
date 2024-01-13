@@ -3,12 +3,9 @@
     "module": "ES2015",
     "moduleResolution": "Node",
     "declaration": true,
-    "declarationDir": "dist"
+    "declarationDir": "dist",
+    "lib": ["ES2017", "DOM"]
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }
